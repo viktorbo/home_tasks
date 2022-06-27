@@ -16,12 +16,12 @@ class Credentials:
 
     @property
     def login(self):
-        with allure.step("Return LOGIN"):
+        with allure.step("Get LOGIN"):
             return self.__login
 
     @property
     def password(self):
-        with allure.step("Return PASSWORD"):
+        with allure.step("Get PASSWORD"):
             return self.__password
 
     @staticmethod

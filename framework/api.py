@@ -20,10 +20,11 @@ class API:
         self._credentials = Credentials()
 
     def auth_request(self, request_type, api_method, **kwargs):
-        with allure.step(f"{request_type.upper()} {api_method} request with args: {kwargs}"):
+        with allure.step(f"{request_type.upper()} {api_method.upper()} with {kwargs}"):
             with allure.step("Create full URL address"):
                 url = self._service_address + api_method
-            with allure.step(f"{request_type.upper()} request to {url} with HTTPBasicAuth and args: {kwargs}"):
+            with allure.step(f"Execute '{request_type.upper()}' request to '{url}' "
+                             f"with HTTPBasicAuth and args: {kwargs}"):
                 response = request(method=request_type, url=url,
                                    auth=HTTPBasicAuth(self._credentials.login, self._credentials.password),
                                    **kwargs)
