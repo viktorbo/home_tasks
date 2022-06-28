@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -7,4 +8,6 @@ class SimpleResponse:
     Структура для упрощения работы с ответами на запросы
     """
     status_code: int
-    content: str or int or float or bool or dict
+    time: float
+    headers: dict
+    content: Any
