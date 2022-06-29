@@ -29,10 +29,13 @@ class API:
                                    auth=HTTPBasicAuth(self._credentials.login, self._credentials.password),
                                    **kwargs)
             with allure.step(f"Transform response to SimpleResponse (custom type)"):
+                # Сатус коды для преобразования контента могут быть дополненены
                 return SimpleResponse(status_code=response.status_code,
                                       time=response.elapsed.total_seconds(),
                                       headers=dict(response.headers),
-                                      content=json.loads(response.text) if response.text else response.text)
+                                      content=json.loads(response.text) if (response.text
+                                                                            and response.status_code not in [414, ])
+                                      else response.text)
 
     # GET
     def get_all_characters(self) -> SimpleResponse:

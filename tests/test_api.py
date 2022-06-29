@@ -92,10 +92,29 @@ class TestGetCharacterByName:
     def test_duplicate_name_many(self, api):
         """
         Данный кейс падает ожидаемо, так как нет информации о том сколько должно возвращаться записей в таком случае.
-        Таким образом мы контролируем информацию об возвращаемых данных.
+        Таким образом мы контролируем информацию об возвращаемых данных. Намеренно не стал скипать тест,
+        потому что это потенциальный баг
         """
         collection = api.get_all_characters().content.get("result")
         duplicate_name, count = get_first_duplicate_name(collection)
         allure.dynamic.title(f"Request with duplicate name (expect many records): '{duplicate_name}' ({count} times)")
         response = api.get_character_by_name(duplicate_name)
         check.obj_type(response.content['result'], dict, negative=True)
+
+    @allure.description("Test for 'GET /character?name=...' method with bad names. "
+                        "Check request time and status code. Also check error messages in some cases."
+                        "Expected status code 400 or 414")
+    @pytest.mark.parametrize("bad_name, reason, expected_status_code, check_msg", [
+        ("alksfnlaknsvkla", "Non-existent name", 400, True),
+        ('', "Empty name", 400, True),
+        ("    ", "Some whitespaces", 400, True),
+        ('A' * (2 ** 16), "Too long name", 414, False),
+        ("!@#$%^&*_-+=<>/?~`", "Special symbols (Can be read but character will not found)", 400, True)
+    ])
+    def test_bad_name(self, api, bad_name, reason, expected_status_code, check_msg):
+        allure.dynamic.title(f"Request with bad name '{bad_name}' ({reason}, status code {expected_status_code})")
+        response = api.get_character_by_name(bad_name)
+        check.status_code(response.status_code, expected_status_code)
+        check.request_exec_time(response.time, 1.5)
+        if check_msg:
+            check.object_schema({"error": {"type": "string", "regex": "name"}}, response.content)
