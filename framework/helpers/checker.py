@@ -1,6 +1,6 @@
 import allure
 from cerberus import Validator
-from hamcrest import assert_that, equal_to, less_than_or_equal_to
+from hamcrest import assert_that, equal_to, less_than_or_equal_to, is_not, is_
 
 
 class Checker:
@@ -23,3 +23,10 @@ class Checker:
     def request_exec_time(curr_time, expected_time):
         with allure.step(f"Check request execution time ({curr_time} <= {expected_time})"):
             assert_that(curr_time, less_than_or_equal_to(expected_time), "Too long request execution")
+
+    @staticmethod
+    def obj_type(obj, expected_type: type, negative: bool = False):
+        with allure.step(f"Check object type (expect {expected_type})"):
+            assert_that(obj, is_not(expected_type), f"Wrong type ({type(obj)} but expect not {expected_type})") \
+                if negative else \
+                assert_that(obj, is_(expected_type), f"Wrong type ({type(obj)} but expect {expected_type})")
