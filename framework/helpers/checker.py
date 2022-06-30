@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import allure
 from cerberus import Validator
 from hamcrest import assert_that, equal_to, less_than_or_equal_to, is_not, is_
@@ -30,3 +32,8 @@ class Checker:
             assert_that(obj, is_not(expected_type), f"Wrong type ({type(obj)} but expect not {expected_type})") \
                 if negative else \
                 assert_that(obj, is_(expected_type), f"Wrong type ({type(obj)} but expect {expected_type})")
+
+    @staticmethod
+    def matching_data(curr_data, expected_data):
+        with allure.step(f"Check that data matched"):
+            assert_that(curr_data, equal_to(expected_data), "Data aren't equal")

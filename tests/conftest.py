@@ -1,5 +1,6 @@
 import allure
 import pytest
+from faker import Faker
 
 from framework.api import API
 
@@ -16,3 +17,17 @@ def api():
     yield api
     with allure.step("Delete API object"):
         del api
+
+
+@pytest.fixture(scope="session")
+def fake():
+    """
+    Create Faker object
+
+    :return: Faker object
+    """
+    with allure.step("Create Faker object"):
+        fake = Faker()
+    yield fake
+    with allure.step("Delete Faker object"):
+        del fake

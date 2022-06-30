@@ -5,7 +5,6 @@ from framework.helpers.checker import Checker as check
 from framework.helpers.utils import get_first_duplicate_name
 
 
-@allure.epic("FUNCTIONAL")
 @allure.feature("GET")
 @allure.story("CHARACTERS")
 class TestGetCharacters:
@@ -25,8 +24,8 @@ class TestGetCharacters:
                     "type": "dict",
                     "schema": {
                         "education": {"type": "string"},
-                        "height": {"type": "integer"},
-                        "weight": {"type": "float"},
+                        "height": {"type": "number"},
+                        "weight": {"type": "number"},
                         "identity": {"type": "string"},
                         "name": {"type": "string"},
                         "other_aliases": {"type": "string"},
@@ -36,7 +35,6 @@ class TestGetCharacters:
             }}, response.content)
 
 
-@allure.epic("FUNCTIONAL")
 @allure.feature("GET")
 @allure.story("CHARACTER BY NAME")
 class TestGetCharacterByName:
@@ -55,8 +53,8 @@ class TestGetCharacterByName:
                 "type": "dict",
                 "schema": {
                     "education": {"type": "string"},
-                    "height": {"type": "integer"},
-                    "weight": {"type": "float"},
+                    "height": {"type": "number"},
+                    "weight": {"type": "number"},
                     "identity": {"type": "string"},
                     "name": {"type": "string"},
                     "other_aliases": {"type": "string"},
@@ -77,8 +75,8 @@ class TestGetCharacterByName:
                 "type": "dict",
                 "schema": {
                     "education": {"type": "string"},
-                    "height": {"type": "integer"},
-                    "weight": {"type": "float"},
+                    "height": {"type": "number"},
+                    "weight": {"type": "number"},
                     "identity": {"type": "string"},
                     "name": {"type": "string"},
                     "other_aliases": {"type": "string"},
@@ -118,3 +116,43 @@ class TestGetCharacterByName:
         check.request_exec_time(response.time, 1.5)
         if check_msg:
             check.object_schema({"error": {"type": "string", "regex": "name"}}, response.content)
+
+
+@allure.feature("POST")
+@allure.story("CHARACTER")
+class TestPostCharacter:
+
+    @allure.description("Test for 'POST /character' method with correct data. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 200. New character must be added in collection")
+    @pytest.mark.parametrize("name, universe, education, weight, height, identity", [
+        ("TestName", "Test Universe", "TestEducation", 11, 13.52, "Test Identity"),
+        ("Test Name", "TestUniverse", "Test Education", 15.12, 12, "TestIdentity")
+    ])
+    def test_correct_data(self, api, fake, name, universe, education, weight, height, identity):
+        schema = {
+            "result": {
+                "type": "dict",
+                "schema": {
+                    "education": {"type": "string"},
+                    "height": {"type": "number"},
+                    "weight": {"type": "number"},
+                    "identity": {"type": "string"},
+                    "name": {"type": "string"},
+                    "other_aliases": {"type": "string"},
+                    "universe": {"type": "string"}
+                }
+            }
+        }
+        character_data = {"name": name + str(fake.random_number()),
+                          "universe": universe,
+                          "education": education,
+                          "weight": weight,
+                          "height": height,
+                          "identity": identity}
+        allure.dynamic.title(f"Add character: {character_data}")
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 200)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema(schema, response.content)
+        check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
