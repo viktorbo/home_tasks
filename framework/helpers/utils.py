@@ -14,3 +14,8 @@ def get_first_duplicate_name(collection):
 def transform_to_float(obj):
     with allure.step(f"Transform object {obj} ({type(obj)}) to float"):
         return float(obj)
+
+
+def update_dictionary_single_val(dictionary: dict, fields, new_val):
+    with allure.step(f"Update dictionary"):
+        dictionary.update(dict.fromkeys(fields, new_val))
