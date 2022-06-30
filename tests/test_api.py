@@ -2,7 +2,7 @@ import allure
 import pytest
 
 from framework.helpers.checker import Checker as check
-from framework.helpers.utils import get_first_duplicate_name
+from framework.helpers.utils import get_first_duplicate_name, transform_to_float
 
 
 @allure.feature("GET")
@@ -127,7 +127,8 @@ class TestPostCharacter:
                         "Expected status code 200. New character must be added to collection")
     @pytest.mark.parametrize("name, universe, education, weight, height, identity", [
         ("TestName", "Test Universe", "TestEducation", 1, 2.2, "Test Identity"),
-        ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity")
+        ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity"),
+        ("ТестИмя", "ТестВселенная", "ТестОбразование", "11", "22", "ТестИзвестность")
     ])
     def test_correct_data(self, api, fake, name, universe, education, weight, height, identity):
         schema = {
@@ -155,11 +156,14 @@ class TestPostCharacter:
         check.status_code(response.status_code, 200)
         check.request_exec_time(response.time, 1.5)
         check.object_schema(schema, response.content)
+        character_data.update({"weight": transform_to_float(character_data["weight"]),
+                               "height": transform_to_float(character_data["height"])})
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
 
     @allure.description("Test for 'POST /character' method with empty input field in json. "
                         "Check response structure, data types and response time."
-                        "Expected status code 400. New character will not be added to collection")
+                        "Expected status code 400. Error message will not be checked. "
+                        "New character will not be added to collection")
     @pytest.mark.parametrize("empty_field_names", [
         ("name",),
         ("name", "universe", "education"),
@@ -183,7 +187,8 @@ class TestPostCharacter:
 
     @allure.description("Test for 'POST /character' method with null input field in json. "
                         "Check response structure, data types and response time."
-                        "Expected status code 400. New character will not be added to collection")
+                        "Expected status code 400.  Error message will not be checked. "
+                        "New character will not be added to collection")
     @pytest.mark.parametrize("null_field_names", [
         ("name",),
         ("name", "universe", "education"),
@@ -203,4 +208,36 @@ class TestPostCharacter:
         check.request_exec_time(response.time, 1.5)
         check.object_schema({"error": {"type": "string"}}, response.content)
         for field_name in null_field_names:
+            check.data_contain_str(response.content["error"], field_name)
+
+    @allure.description("Test for 'POST /character' method with bad input json (string type)"
+                        "Check response structure, data types and response time."
+                        "Expected status code 400.  Error message will not be checked. "
+                        "New character will not be added to collection")
+    @pytest.mark.parametrize("bad_field_names", [
+        ("name",),
+        ("name", "universe"),
+        ("education", "identity")
+    ])
+    @pytest.mark.parametrize("bad_value", [
+        'A' * (2 ** 10),
+        123,
+        -10,
+        "!?;:/|\@#$%^&*_-+=~<>"  # сомнительный кейс
+    ])
+    def test_bad_field_str(self, api, fake, bad_field_names, bad_value):
+        allure.dynamic.title(f"Check add character with bad string fields '{bad_field_names}', value: {bad_value}")
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        for field_name in bad_field_names:
+            character_data.update({field_name: bad_value})
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
+        for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)

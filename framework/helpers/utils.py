@@ -10,3 +10,7 @@ def get_first_duplicate_name(collection):
             if count > 1:
                 return name, count
 
+
+def transform_to_float(obj):
+    with allure.step(f"Transform object {obj} ({type(obj)}) to float"):
+        return float(obj)
