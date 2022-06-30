@@ -124,10 +124,10 @@ class TestPostCharacter:
 
     @allure.description("Test for 'POST /character' method with correct data. "
                         "Check response structure, data types and response time."
-                        "Expected status code 200. New character must be added in collection")
+                        "Expected status code 200. New character must be added to collection")
     @pytest.mark.parametrize("name, universe, education, weight, height, identity", [
-        ("TestName", "Test Universe", "TestEducation", 11, 13.52, "Test Identity"),
-        ("Test Name", "TestUniverse", "Test Education", 15.12, 12, "TestIdentity")
+        ("TestName", "Test Universe", "TestEducation", 1, 2.2, "Test Identity"),
+        ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity")
     ])
     def test_correct_data(self, api, fake, name, universe, education, weight, height, identity):
         schema = {
@@ -156,3 +156,41 @@ class TestPostCharacter:
         check.request_exec_time(response.time, 1.5)
         check.object_schema(schema, response.content)
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
+
+    @allure.description("Test for 'POST /character' method with empty input field in json. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 400. New character will not be added to collection")
+    @pytest.mark.parametrize("empty_field_name", ["name", "universe", "education", "weight", "height", "identity"])
+    def test_empty_field(self, api, fake, empty_field_name):
+        allure.dynamic.title(f"Check add character with empty field: '{empty_field_name}'")
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        character_data.update({empty_field_name: ""})
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.data_contain_str(response.content["error"], empty_field_name)
+
+    @allure.description("Test for 'POST /character' method with null input field in json. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 400. New character will not be added to collection")
+    @pytest.mark.parametrize("empty_field_name", ["name", "universe", "education", "weight", "height", "identity"])
+    def test_null_field(self, api, fake, empty_field_name):
+        allure.dynamic.title(f"Check add character with null field: '{empty_field_name}'")
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        character_data.update({empty_field_name: None})
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.data_contain_str(response.content["error"], empty_field_name)

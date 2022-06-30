@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import allure
 from cerberus import Validator
-from hamcrest import assert_that, equal_to, less_than_or_equal_to, is_not, is_
+from hamcrest import assert_that, equal_to, less_than_or_equal_to, is_not, is_, contains_string
 
 
 class Checker:
@@ -37,3 +37,8 @@ class Checker:
     def matching_data(curr_data, expected_data):
         with allure.step(f"Check that data matched"):
             assert_that(curr_data, equal_to(expected_data), "Data aren't equal")
+
+    @staticmethod
+    def data_contain_str(data, substring):
+        with allure.step(f"CHeck that {data} contain {substring}"):
+            assert_that(data, contains_string(substring), "Data don't contain substring")
