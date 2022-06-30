@@ -160,37 +160,47 @@ class TestPostCharacter:
     @allure.description("Test for 'POST /character' method with empty input field in json. "
                         "Check response structure, data types and response time."
                         "Expected status code 400. New character will not be added to collection")
-    @pytest.mark.parametrize("empty_field_name", ["name", "universe", "education", "weight", "height", "identity"])
-    def test_empty_field(self, api, fake, empty_field_name):
-        allure.dynamic.title(f"Check add character with empty field: '{empty_field_name}'")
+    @pytest.mark.parametrize("empty_field_names", [
+        ("name",),
+        ("name", "universe", "education"),
+        ("weight", "height", "identity")])
+    def test_empty_field(self, api, fake, empty_field_names):
+        allure.dynamic.title(f"Check add character with empty fields: {empty_field_names}")
         character_data = {"name": "TestName" + str(fake.random_number()),
                           "universe": "TestUniverse",
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
                           "identity": "TestIdentity"}
-        character_data.update({empty_field_name: ""})
+        for field_name in empty_field_names:
+            character_data.update({field_name: ""})
         response = api.post_character(character_data)
         check.status_code(response.status_code, 400)
         check.request_exec_time(response.time, 1.5)
         check.object_schema({"error": {"type": "string"}}, response.content)
-        check.data_contain_str(response.content["error"], empty_field_name)
+        for field_name in empty_field_names:
+            check.data_contain_str(response.content["error"], field_name)
 
     @allure.description("Test for 'POST /character' method with null input field in json. "
                         "Check response structure, data types and response time."
                         "Expected status code 400. New character will not be added to collection")
-    @pytest.mark.parametrize("empty_field_name", ["name", "universe", "education", "weight", "height", "identity"])
-    def test_null_field(self, api, fake, empty_field_name):
-        allure.dynamic.title(f"Check add character with null field: '{empty_field_name}'")
+    @pytest.mark.parametrize("null_field_names", [
+        ("name",),
+        ("name", "universe", "education"),
+        ("weight", "height", "identity")])
+    def test_null_field(self, api, fake, null_field_names):
+        allure.dynamic.title(f"Check add character with null field: {null_field_names}")
         character_data = {"name": "TestName" + str(fake.random_number()),
                           "universe": "TestUniverse",
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
                           "identity": "TestIdentity"}
-        character_data.update({empty_field_name: None})
+        for field_name in null_field_names:
+            character_data.update({field_name: None})
         response = api.post_character(character_data)
         check.status_code(response.status_code, 400)
         check.request_exec_time(response.time, 1.5)
         check.object_schema({"error": {"type": "string"}}, response.content)
-        check.data_contain_str(response.content["error"], empty_field_name)
+        for field_name in null_field_names:
+            check.data_contain_str(response.content["error"], field_name)
