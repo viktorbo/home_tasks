@@ -128,7 +128,10 @@ class TestPostCharacter:
     @pytest.mark.parametrize("name, universe, education, weight, height, identity", [
         ("TestName", "Test Universe", "TestEducation", 1, 2.2, "Test Identity"),
         ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity"),
-        ("ТестИмя", "ТестВселенная", "ТестОбразование", "11", "22", "ТестИзвестность")
+        ("TestName", "TestUniverse", "TestEducation", 0, -5, "TestIdentity"),
+        ("TestName", "TestUniverse", "TestEducation", -5, 0, "TestIdentity"),
+        ("ТестИмя", "Тест Вселенная", "ТестОбразование", "11", "-22.22", "ТестИзвестность"),
+        ("Тест Имя", "ТестВселенная", "Тест Образование", "-11.11", "22", "ТестИзвестность")
     ])
     def test_correct_data(self, api, fake, name, universe, education, weight, height, identity):
         schema = {
