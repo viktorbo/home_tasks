@@ -2,7 +2,7 @@ import allure
 import pytest
 
 from framework.helpers.checker import Checker as check
-from framework.helpers.utils import get_first_duplicate_name, transform_to_float
+from framework.helpers.utils import get_first_duplicate_name, transform_to_float, update_dictionary_single_val
 
 
 @allure.feature("GET")
@@ -179,8 +179,7 @@ class TestPostCharacter:
                           "weight": 1,
                           "height": 2,
                           "identity": "TestIdentity"}
-        for field_name in empty_field_names:
-            character_data.update({field_name: ""})
+        update_dictionary_single_val(character_data, empty_field_names, "")
         response = api.post_character(character_data)
         check.status_code(response.status_code, 400)
         check.request_exec_time(response.time, 1.5)
@@ -204,8 +203,7 @@ class TestPostCharacter:
                           "weight": 1,
                           "height": 2,
                           "identity": "TestIdentity"}
-        for field_name in null_field_names:
-            character_data.update({field_name: None})
+        update_dictionary_single_val(character_data, null_field_names, None)
         response = api.post_character(character_data)
         check.status_code(response.status_code, 400)
         check.request_exec_time(response.time, 1.5)
@@ -213,7 +211,7 @@ class TestPostCharacter:
         for field_name in null_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
-    @allure.description("Test for 'POST /character' method with bad input json (string type)"
+    @allure.description("Test for 'POST /character' method with bad input json (string fields)"
                         "Check response structure, data types and response time."
                         "Expected status code 400.  Error message will not be checked. "
                         "New character will not be added to collection")
@@ -226,21 +224,74 @@ class TestPostCharacter:
         'A' * (2 ** 10),
         123,
         -10,
-        "!?;:/|\@#$%^&*_-+=~<>"  # сомнительный кейс
+        "!?;:/|@#$%^&*_-+=~<>±§"  # сомнительный кейс
     ])
     def test_bad_field_str(self, api, fake, bad_field_names, bad_value):
-        allure.dynamic.title(f"Check add character with bad string fields '{bad_field_names}', value: {bad_value}")
+        allure.dynamic.title(f"Check add character with bad string fields {bad_field_names}, value: {bad_value}")
         character_data = {"name": "TestName" + str(fake.random_number()),
                           "universe": "TestUniverse",
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
                           "identity": "TestIdentity"}
-        for field_name in bad_field_names:
-            character_data.update({field_name: bad_value})
+        update_dictionary_single_val(character_data, bad_field_names, bad_value)
+        if ("name" in bad_field_names) and (bad_value == "!?;:/|@#$%^&*_-+=~<>±§"):
+            update_dictionary_single_val(character_data, ["name", ], f"{character_data['name']}{fake.random_number()}")
         response = api.post_character(character_data)
         check.status_code(response.status_code, 400)
         check.request_exec_time(response.time, 1.5)
         check.object_schema({"error": {"type": "string"}}, response.content)
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
+
+    @allure.description("Test for 'POST /character' method with bad input json (numeric fields)"
+                        "Check response structure, data types and response time."
+                        "Expected status code 400.  Error message will not be checked. "
+                        "New character will not be added to collection")
+    @pytest.mark.parametrize("bad_field_names", [
+        ("weight",),
+        ("height",),
+        ("weight", "height")
+    ])
+    @pytest.mark.parametrize("bad_value", [
+        'A' * (2 ** 10),
+        "!?;:/|@#$%^&*_-+=~<>±§",
+        "1 2",
+        "123.1a2b3"
+    ])
+    def test_bad_field_numeric(self, api, fake, bad_field_names, bad_value):
+        allure.dynamic.title(f"Check add character with bad numeric fields {bad_field_names}, value: {bad_value}")
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        update_dictionary_single_val(character_data, bad_field_names, bad_value)
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
+        for field_name in bad_field_names:
+            check.data_contain_str(response.content["error"], field_name)
+
+    @allure.description("Test for 'POST /character' method for duplicate character"
+                        "Check response structure, data types and response time."
+                        "Expected status code 400.  Error message will not be checked. "
+                        "Duplicated character will not be added to collection")
+    def test_duplicate_character(self, api, fake):
+        character_name = "TestName" + str(fake.random_number())
+        character_data = {"name": character_name,
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        allure.dynamic.title(f"Check adding duplicate character. Name '{character_name}'")
+        first_response = api.post_character(character_data)
+        check.status_code(first_response.status_code, 200)
+        second_response = api.post_character(character_data)
+        check.status_code(second_response.status_code, 400)
+        check.request_exec_time(second_response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, second_response.content)
+        check.data_contain_str(second_response.content["error"], character_name)
