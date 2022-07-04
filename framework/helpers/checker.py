@@ -40,5 +40,5 @@ class Checker:
 
     @staticmethod
     def data_contain_str(data, substring):
-        with allure.step(f"CHeck that {data} contain {substring}"):
+        with allure.step(f"Check that data '{data}' contain '{substring}'"):
             assert_that(data, contains_string(substring), "Data don't contain substring")

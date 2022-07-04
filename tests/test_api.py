@@ -295,3 +295,27 @@ class TestPostCharacter:
         check.request_exec_time(second_response.time, 1.5)
         check.object_schema({"error": {"type": "string"}}, second_response.content)
         check.data_contain_str(second_response.content["error"], character_name)
+
+    @allure.description("Test for 'POST /character' method for too many characters (more than DB limit)"
+                        "Check response structure, data types and response time."
+                        "Expected status code 400.  Error message will not be checked. "
+                        "Duplicated character will not be added to collection")
+    def test_characters_limit(self, api, fake):
+        limit = 500
+        allure.dynamic.title(f"Check adding characters more than DB limit ({limit})")
+        for i in range(limit + 1):
+            character_data = {"name": f"{i + 1}_TestName_{fake.random_number()}",
+                              "universe": "TestUniverse",
+                              "education": "TestEducation",
+                              "weight": 1,
+                              "height": 2,
+                              "identity": "TestIdentity"}
+            response = api.post_character(character_data)
+            try:
+                check.status_code(response.status_code, 200)
+            except AssertionError:
+                check.status_code(response.status_code, 400)
+                check.request_exec_time(response.time, 1.5)
+                check.object_schema({"error": {"type": "string"}}, response.content)
+                check.data_contain_str(response.content["error"], str(limit))
+                break
