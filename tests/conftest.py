@@ -31,3 +31,11 @@ def fake():
     yield fake
     with allure.step("Delete Faker object"):
         del fake
+
+
+@pytest.fixture(autouse=True, scope="class")
+def reset_collection(api):
+    with allure.step("Reset the collection"):
+        api.post_reset_collection()
+    yield  # специально остаил такую конструкцию, чтобы явно разделить setup и teardown
+    ...
