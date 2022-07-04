@@ -2,7 +2,7 @@ import allure
 import pytest
 
 from framework.helpers.checker import Checker as check
-from framework.helpers.utils import transform_to_float, update_dictionary_single_val
+from framework.helpers.utils import transform_to_float, update_dictionary_single_val, change_field_name, pop_field
 
 
 @allure.feature("POST")
@@ -161,6 +161,52 @@ class TestPostCharacter:
         check.object_schema({"error": {"type": "string"}}, response.content)
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
+
+    @allure.description("Test for 'POST /character' method with 'wrong' field names. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 400. New character will not be added to collection")
+    @pytest.mark.parametrize("field_names", [
+        ["name", ],
+        ["name", "education", "height"],
+        ["universe", "weight", "identity"],
+    ])
+    def test_wrong_fields_name(self, api, fake, field_names):
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        allure.dynamic.title(f"Add character with wrong fields ({field_names}). Data: {character_data}")
+        for field_name in field_names:
+            change_field_name(character_data, field_name, f"wrong_{field_name}")
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
+
+    @allure.description("Test for 'POST /character' method without some fields. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 400. New character will not be added to collection")
+    @pytest.mark.parametrize("field_names", [
+        ["name", ],
+        ["name", "education", "height"],
+        ["universe", "weight", "identity"],
+    ])
+    def test_pop_fields(self, api, fake, field_names):
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        allure.dynamic.title(f"Add character without fields ({field_names}). Data: {character_data}")
+        for field_name in field_names:
+            pop_field(character_data, field_name)
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 400)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema({"error": {"type": "string"}}, response.content)
 
     @allure.description("Test for 'POST /character' method for duplicate character"
                         "Check response structure, data types and response time."
