@@ -12,15 +12,15 @@ class TestPostCharacter:
     @allure.description("Test for 'POST /character' method with correct data. "
                         "Check response structure, data types and response time."
                         "Expected status code 200. New character must be added to collection")
-    @pytest.mark.parametrize("name, universe, education, weight, height, identity", [
-        ("TestName", "Test Universe", "TestEducation", 1, 2.2, "Test Identity"),
-        ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity"),
-        ("TestName", "TestUniverse", "TestEducation", 0, -5, "TestIdentity"),
-        ("TestName", "TestUniverse", "TestEducation", -5, 0, "TestIdentity"),
-        ("ТестИмя", "Тест Вселенная", "ТестОбразование", "11", "-22.22", "ТестИзвестность"),
-        ("Тест Имя", "ТестВселенная", "Тест Образование", "-11.11", "22", "ТестИзвестность")
+    @pytest.mark.parametrize("name, universe, education, weight, height, identity, other_aliases", [
+        ("TestName", "Test Universe", "TestEducation", 1, 2.2, "Test Identity", "TestAlias1"),
+        ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity", "Test Alias1"),
+        ("TestName", "TestUniverse", "TestEducation", 0, -5, "TestIdentity", "TestAlias1, TestAlias2"),
+        ("TestName", "TestUniverse", "TestEducation", -5, 0, "TestIdentity", "Test Alias1, Test Alias2"),
+        ("ТестИмя", "Тест Вселенная", "ТестОбразование", "11", "-22.22", "ТестИзвестность", "ТестПрозвище1, ТестПрозвище2"),
+        ("Тест Имя", "ТестВселенная", "Тест Образование", "-11.11", "22", "ТестИзвестность", "Тест Прозвище1, Тест Прозвище2")
     ])
-    def test_correct_data(self, api, fake, name, universe, education, weight, height, identity):
+    def test_correct_data(self, api, fake, name, universe, education, weight, height, identity, other_aliases):
         schema = {
             "result": {
                 "type": "dict",
@@ -40,7 +40,8 @@ class TestPostCharacter:
                           "education": education,
                           "weight": weight,
                           "height": height,
-                          "identity": identity}
+                          "identity": identity,
+                          "other_aliases": other_aliases}
         allure.dynamic.title(f"Add character: {character_data}")
         response = api.post_character(character_data)
         check.status_code(response.status_code, 200)
@@ -48,6 +49,37 @@ class TestPostCharacter:
         check.object_schema(schema, response.content)
         character_data.update({"weight": transform_to_float(character_data["weight"]),
                                "height": transform_to_float(character_data["height"])})
+        check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
+
+    @allure.description("Test for 'POST /character' method with correct data, but without aliases. "
+                        "Check response structure, data types and response time."
+                        "Expected status code 200. New character must be added to collection")
+    def test_correct_data_without_aliases(self, api, fake):
+        schema = {
+            "result": {
+                "type": "dict",
+                "schema": {
+                    "education": {"type": "string"},
+                    "height": {"type": "number"},
+                    "weight": {"type": "number"},
+                    "identity": {"type": "string"},
+                    "name": {"type": "string"},
+                    "other_aliases": {"type": "string"},
+                    "universe": {"type": "string"}
+                }
+            }
+        }
+        character_data = {"name": "TestName" + str(fake.random_number()),
+                          "universe": "TestUniverse",
+                          "education": "TestEducation",
+                          "weight": 1,
+                          "height": 2,
+                          "identity": "TestIdentity"}
+        allure.dynamic.title(f"Add character: {character_data}")
+        response = api.post_character(character_data)
+        check.status_code(response.status_code, 200)
+        check.request_exec_time(response.time, 1.5)
+        check.object_schema(schema, response.content)
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
 
     @allure.description("Test for 'POST /character' method with empty input field in json. "
