@@ -11,12 +11,8 @@ class TestGetCharacters:
     @allure.description("Test for 'GET /characters' method. Check response structure, data types and response time")
     def test_response_structure(self, api):
         response = api.get_all_characters()
-        # "хороший" статус код может быть не один, в таком случае надо доработать (в тестах ниже аналогично)
-        check.status_code(response.status_code, 200)
-        # время выбрано в среднем с учетом возможных задержек (в тестах ниже аналогично)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema(
-            {"result": {
+        expected_schema = {
+            "result": {
                 "type": "list",
                 "schema": {
                     "type": "dict",
@@ -30,4 +26,6 @@ class TestGetCharacters:
                         "universe": {"type": "string"}
                     }
                 }
-            }}, response.content)
+            }
+        }
+        check.base_complex_check(response, 200, 1.5, expected_schema)

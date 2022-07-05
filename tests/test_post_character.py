@@ -17,8 +17,10 @@ class TestPostCharacter:
         ("Test Name", "TestUniverse", "Test Education", 3.3, 4, "TestIdentity", "Test Alias1"),
         ("TestName", "TestUniverse", "TestEducation", 0, -5, "TestIdentity", "TestAlias1, TestAlias2"),
         ("TestName", "TestUniverse", "TestEducation", -5, 0, "TestIdentity", "Test Alias1, Test Alias2"),
-        ("ТестИмя", "Тест Вселенная", "ТестОбразование", "11", "-22.22", "ТестИзвестность", "ТестПрозвище1, ТестПрозвище2"),
-        ("Тест Имя", "ТестВселенная", "Тест Образование", "-11.11", "22", "ТестИзвестность", "Тест Прозвище1, Тест Прозвище2")
+        ("ТестИмя", "Тест Вселенная", "ТестОбразование", "11", "-22.22", "ТестИзвестность",
+         "ТестПрозвище1, ТестПрозвище2"),
+        ("Тест Имя", "ТестВселенная", "Тест Образование", "-11.11", "22", "ТестИзвестность",
+         "Тест Прозвище1, Тест Прозвище2")
     ])
     def test_correct_data(self, api, fake, name, universe, education, weight, height, identity, other_aliases):
         schema = {
@@ -44,9 +46,7 @@ class TestPostCharacter:
                           "other_aliases": other_aliases}
         allure.dynamic.title(f"Add character: {character_data}")
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 200)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema(schema, response.content)
+        check.base_complex_check(response, 200, 1.5, schema)
         character_data.update({"weight": transform_to_float(character_data["weight"]),
                                "height": transform_to_float(character_data["height"])})
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
@@ -77,9 +77,7 @@ class TestPostCharacter:
                           "identity": "TestIdentity"}
         allure.dynamic.title(f"Add character: {character_data}")
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 200)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema(schema, response.content)
+        check.base_complex_check(response, 200, 1.5, schema)
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
 
     @allure.description("Test for 'POST /character' method with empty input field in json. "
@@ -100,9 +98,7 @@ class TestPostCharacter:
                           "identity": "TestIdentity"}
         update_dictionary_single_val(character_data, empty_field_names, "")
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
         for field_name in empty_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -124,9 +120,7 @@ class TestPostCharacter:
                           "identity": "TestIdentity"}
         update_dictionary_single_val(character_data, null_field_names, None)
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
         for field_name in null_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -157,9 +151,7 @@ class TestPostCharacter:
         if ("name" in bad_field_names) and (bad_value == "!?;:/|@#$%^&*_-+=~<>±§"):
             update_dictionary_single_val(character_data, ["name", ], f"{character_data['name']}{fake.random_number()}")
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -188,9 +180,7 @@ class TestPostCharacter:
                           "identity": "TestIdentity"}
         update_dictionary_single_val(character_data, bad_field_names, bad_value)
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -213,9 +203,7 @@ class TestPostCharacter:
         for field_name in field_names:
             change_field_name(character_data, field_name, f"wrong_{field_name}")
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
 
     @allure.description("Test for 'POST /character' method without some fields. "
                         "Check response structure, data types and response time."
@@ -236,9 +224,7 @@ class TestPostCharacter:
         for field_name in field_names:
             pop_field(character_data, field_name)
         response = api.post_character(character_data)
-        check.status_code(response.status_code, 400)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, response.content)
+        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
 
     @allure.description("Test for 'POST /character' method for duplicate character"
                         "Check response structure, data types and response time."
@@ -256,9 +242,7 @@ class TestPostCharacter:
         first_response = api.post_character(character_data)
         check.status_code(first_response.status_code, 200)
         second_response = api.post_character(character_data)
-        check.status_code(second_response.status_code, 400)
-        check.request_exec_time(second_response.time, 1.5)
-        check.object_schema({"error": {"type": "string"}}, second_response.content)
+        check.base_complex_check(second_response, 400, 1.5, {"error": {"type": "string"}})
         check.data_contain_str(second_response.content["error"], character_name)
 
     @allure.description("Test for 'POST /character' method for too many characters (more than DB limit)"
@@ -279,8 +263,6 @@ class TestPostCharacter:
             try:
                 check.status_code(response.status_code, 200)
             except AssertionError:
-                check.status_code(response.status_code, 400)
-                check.request_exec_time(response.time, 1.5)
-                check.object_schema({"error": {"type": "string"}}, response.content)
+                check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
                 check.data_contain_str(response.content["error"], str(limit))
                 break

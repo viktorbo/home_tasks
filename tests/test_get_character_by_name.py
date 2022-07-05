@@ -16,10 +16,8 @@ class TestGetCharacterByName:
     def test_correct_name(self, api, character_name):
         allure.dynamic.title(f"Request with correct name: '{character_name}'")
         response = api.get_character_by_name(character_name)
-        check.status_code(response.status_code, 200)
-        check.request_exec_time(response.time, 1.5)
-        check.object_schema(
-            {"result": {
+        expected_schema = {
+            "result": {
                 "type": "dict",
                 "schema": {
                     "education": {"type": "string"},
@@ -30,7 +28,9 @@ class TestGetCharacterByName:
                     "other_aliases": {"type": "string"},
                     "universe": {"type": "string"}
                 }
-            }}, response.content)
+            }
+        }
+        check.base_complex_check(response, 200, 1.5, expected_schema)
 
     @allure.description("Test for 'GET /character?name=...' method for duplicate records. "
                         "Check response structure and data types. "
@@ -40,19 +40,19 @@ class TestGetCharacterByName:
         duplicate_name, count = get_first_duplicate_name(collection)
         allure.dynamic.title(f"Request with duplicate name (expect one record): '{duplicate_name}' ({count} times)")
         response = api.get_character_by_name(duplicate_name)
-        check.object_schema(
-            {"result": {
-                "type": "dict",
-                "schema": {
-                    "education": {"type": "string"},
-                    "height": {"type": "number"},
-                    "weight": {"type": "number"},
-                    "identity": {"type": "string"},
-                    "name": {"type": "string"},
-                    "other_aliases": {"type": "string"},
-                    "universe": {"type": "string"}
-                }
-            }}, response.content)
+        check.object_schema(response.content,
+                            {"result": {
+                                "type": "dict",
+                                "schema": {
+                                    "education": {"type": "string"},
+                                    "height": {"type": "number"},
+                                    "weight": {"type": "number"},
+                                    "identity": {"type": "string"},
+                                    "name": {"type": "string"},
+                                    "other_aliases": {"type": "string"},
+                                    "universe": {"type": "string"}
+                                }
+                            }})
 
     @allure.description("Test for 'GET /character?name=...' method for duplicate records. "
                         "Check response structure and data types. "
@@ -85,4 +85,4 @@ class TestGetCharacterByName:
         check.status_code(response.status_code, expected_status_code)
         check.request_exec_time(response.time, 1.5)
         if check_msg:
-            check.object_schema({"error": {"type": "string", "regex": "name"}}, response.content)
+            check.object_schema(response.content, {"error": {"type": "string", "regex": "name"}})

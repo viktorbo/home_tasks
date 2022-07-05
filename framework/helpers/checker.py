@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import allure
 from cerberus import Validator
 from hamcrest import assert_that, equal_to, less_than_or_equal_to, is_not, is_, contains_string
@@ -16,7 +14,7 @@ class Checker:
             assert_that(current_status_code, equal_to(expected_status_code), "Wrong status code!")
 
     @staticmethod
-    def object_schema(schema, checking_object):
+    def object_schema(checking_object, schema):
         with allure.step(f"Validate object schema: {schema}"):
             validator = Validator()
             validator.validate(checking_object, schema)
@@ -42,3 +40,11 @@ class Checker:
     def data_contain_str(data, substring):
         with allure.step(f"Check that data '{data}' contain '{substring}'"):
             assert_that(data, contains_string(substring), "Data don't contain substring")
+
+    @staticmethod
+    def base_complex_check(response, status_code, exec_time, schema):
+        with allure.step(f"Check response: status code = {status_code}, execution time = {exec_time}, "
+                         f"schema = {schema}"):
+            Checker.status_code(response.status_code, status_code)
+            Checker.request_exec_time(response.time, exec_time)
+            Checker.object_schema(response.content, schema)
