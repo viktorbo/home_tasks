@@ -51,41 +51,13 @@ class TestPostCharacter:
                                "height": transform_to_float(character_data["height"])})
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
 
-    @allure.description("Test for 'POST /character' method with correct data, but without aliases. "
-                        "Check response structure, data types and response time."
-                        "Expected status code 200. New character must be added to collection")
-    def test_correct_data_without_aliases(self, api, fake):
-        schema = {
-            "result": {
-                "type": "dict",
-                "schema": {
-                    "education": {"type": "string"},
-                    "height": {"type": "number"},
-                    "weight": {"type": "number"},
-                    "identity": {"type": "string"},
-                    "name": {"type": "string"},
-                    "other_aliases": {"type": "string"},
-                    "universe": {"type": "string"}
-                }
-            }
-        }
-        character_data = {"name": "TestName" + str(fake.random_number()),
-                          "universe": "TestUniverse",
-                          "education": "TestEducation",
-                          "weight": 1,
-                          "height": 2,
-                          "identity": "TestIdentity"}
-        allure.dynamic.title(f"Add character: {character_data}")
-        response = api.post_character(character_data)
-        check.base_complex_check(response, 200, 1.5, schema)
-        check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
-
     @allure.description("Test for 'POST /character' method with empty input field in json. "
                         "Check response structure, data types and response time."
                         "Expected status code 400. Error message will not be checked. "
                         "New character will not be added to collection")
     @pytest.mark.parametrize("empty_field_names", [
         ("name",),
+        ("other_aliases",),
         ("name", "universe", "education"),
         ("weight", "height", "identity")])
     def test_empty_field(self, api, fake, empty_field_names):
@@ -95,7 +67,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, empty_field_names, "")
         response = api.post_character(character_data)
         check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
@@ -108,6 +81,7 @@ class TestPostCharacter:
                         "New character will not be added to collection")
     @pytest.mark.parametrize("null_field_names", [
         ("name",),
+        ("other_aliases", ),
         ("name", "universe", "education"),
         ("weight", "height", "identity")])
     def test_null_field(self, api, fake, null_field_names):
@@ -117,7 +91,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, null_field_names, None)
         response = api.post_character(character_data)
         check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
@@ -130,6 +105,7 @@ class TestPostCharacter:
                         "New character will not be added to collection")
     @pytest.mark.parametrize("bad_field_names", [
         ("name",),
+        ("other_aliases", ),
         ("name", "universe"),
         ("education", "identity")
     ])
@@ -146,7 +122,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, bad_field_names, bad_value)
         if ("name" in bad_field_names) and (bad_value == "!?;:/|@#$%^&*_-+=~<>±§"):
             update_dictionary_single_val(character_data, ["name", ], f"{character_data['name']}{fake.random_number()}")
@@ -177,7 +154,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, bad_field_names, bad_value)
         response = api.post_character(character_data)
         check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
@@ -189,6 +167,7 @@ class TestPostCharacter:
                         "Expected status code 400. New character will not be added to collection")
     @pytest.mark.parametrize("field_names", [
         ["name", ],
+        ["other_aliases", ],
         ["name", "education", "height"],
         ["universe", "weight", "identity"],
     ])
@@ -198,7 +177,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         allure.dynamic.title(f"Add character with wrong fields ({field_names}). Data: {character_data}")
         for field_name in field_names:
             change_field_name(character_data, field_name, f"wrong_{field_name}")
@@ -210,6 +190,7 @@ class TestPostCharacter:
                         "Expected status code 400. New character will not be added to collection")
     @pytest.mark.parametrize("field_names", [
         ["name", ],
+        ["other_aliases", ],
         ["name", "education", "height"],
         ["universe", "weight", "identity"],
     ])
@@ -219,7 +200,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         allure.dynamic.title(f"Add character without fields ({field_names}). Data: {character_data}")
         for field_name in field_names:
             pop_field(character_data, field_name)
@@ -237,7 +219,8 @@ class TestPostCharacter:
                           "education": "TestEducation",
                           "weight": 1,
                           "height": 2,
-                          "identity": "TestIdentity"}
+                          "identity": "TestIdentity",
+                          "other_aliases": "TestAliases"}
         allure.dynamic.title(f"Check adding duplicate character. Name '{character_name}'")
         first_response = api.post_character(character_data)
         check.status_code(first_response.status_code, 200)
@@ -258,7 +241,8 @@ class TestPostCharacter:
                               "education": "TestEducation",
                               "weight": 1,
                               "height": 2,
-                              "identity": "TestIdentity"}
+                              "identity": "TestIdentity",
+                              "other_aliases": "TestAliases"}
             response = api.post_character(character_data)
             try:
                 check.status_code(response.status_code, 200)
