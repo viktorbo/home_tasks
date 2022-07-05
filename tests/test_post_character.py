@@ -46,7 +46,7 @@ class TestPostCharacter:
                           "other_aliases": other_aliases}
         allure.dynamic.title(f"Add character: {character_data}")
         response = api.post_character(character_data)
-        check.base_complex_check(response, 200, 1.5, schema)
+        check.base_complex_check(response, 200, schema=schema)
         character_data.update({"weight": transform_to_float(character_data["weight"]),
                                "height": transform_to_float(character_data["height"])})
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
@@ -71,7 +71,7 @@ class TestPostCharacter:
                           "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, empty_field_names, "")
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
         for field_name in empty_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -95,7 +95,7 @@ class TestPostCharacter:
                           "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, null_field_names, None)
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
         for field_name in null_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -128,7 +128,7 @@ class TestPostCharacter:
         if ("name" in bad_field_names) and (bad_value == "!?;:/|@#$%^&*_-+=~<>±§"):
             update_dictionary_single_val(character_data, ["name", ], f"{character_data['name']}{fake.random_number()}")
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -158,7 +158,7 @@ class TestPostCharacter:
                           "other_aliases": "TestAliases"}
         update_dictionary_single_val(character_data, bad_field_names, bad_value)
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
         for field_name in bad_field_names:
             check.data_contain_str(response.content["error"], field_name)
 
@@ -183,7 +183,7 @@ class TestPostCharacter:
         for field_name in field_names:
             change_field_name(character_data, field_name, f"wrong_{field_name}")
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
 
     @allure.description("Test for 'POST /character' method without some fields. "
                         "Check response structure, data types and response time."
@@ -206,7 +206,7 @@ class TestPostCharacter:
         for field_name in field_names:
             pop_field(character_data, field_name)
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema= {"error": {"type": "string"}})
 
     @allure.description("Test for 'POST /character' method for duplicate character"
                         "Check response structure, data types and response time."
@@ -223,9 +223,9 @@ class TestPostCharacter:
                           "other_aliases": "TestAliases"}
         allure.dynamic.title(f"Check adding duplicate character. Name '{character_name}'")
         first_response = api.post_character(character_data)
-        check.status_code(first_response.status_code, 200)
+        check.base_complex_check(first_response, 200)
         second_response = api.post_character(character_data)
-        check.base_complex_check(second_response, 400, 1.5, {"error": {"type": "string"}})
+        check.base_complex_check(second_response, 400, schema={"error": {"type": "string"}})
         check.data_contain_str(second_response.content["error"], character_name)
 
     @allure.description("Test for 'POST /character' method for too many characters (more than DB limit)"
@@ -245,8 +245,8 @@ class TestPostCharacter:
                               "other_aliases": "TestAliases"}
             response = api.post_character(character_data)
             try:
-                check.status_code(response.status_code, 200)
+                check.base_complex_check(response, 200)
             except AssertionError:
-                check.base_complex_check(response, 400, 1.5, {"error": {"type": "string"}})
+                check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
                 check.data_contain_str(response.content["error"], str(limit))
                 break

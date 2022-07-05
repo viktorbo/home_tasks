@@ -28,4 +28,4 @@ class TestGetCharacters:
                 }
             }
         }
-        check.base_complex_check(response, 200, 1.5, expected_schema)
+        check.base_complex_check(response, 200, schema=expected_schema)

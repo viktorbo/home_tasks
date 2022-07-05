@@ -30,7 +30,7 @@ class TestGetCharacterByName:
                 }
             }
         }
-        check.base_complex_check(response, 200, 1.5, expected_schema)
+        check.base_complex_check(response, 200, schema=expected_schema)
 
     @allure.description("Test for 'GET /character?name=...' method for duplicate records. "
                         "Check response structure and data types. "
@@ -82,7 +82,6 @@ class TestGetCharacterByName:
     def test_bad_name(self, api, bad_name, reason, expected_status_code, check_msg):
         allure.dynamic.title(f"Request with bad name '{bad_name}' ({reason}, status code {expected_status_code})")
         response = api.get_character_by_name(bad_name)
-        check.status_code(response.status_code, expected_status_code)
-        check.request_exec_time(response.time, 1.5)
+        check.base_complex_check(response, expected_status_code)
         if check_msg:
             check.object_schema(response.content, {"error": {"type": "string", "regex": "name"}})
