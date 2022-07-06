@@ -51,6 +51,22 @@ class TestPostCharacter:
                                "height": transform_to_float(character_data["height"])})
         check.matching_data(api.get_character_by_name(character_data.get('name')).content.get('result'), character_data)
 
+    @allure.title("Add character only with 'name' field")
+    @allure.description("Check POST CHARACTER with json which contain only 'name' field. "
+                        "Expected status code 400 and error message")
+    def test_empty_data_with_name(self, api, fake):
+        character_data = {"name": "TestName" + str(fake.random_number())}
+        response = api.post_character(character_data)
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
+
+    @allure.title("Add character with empty json")
+    @allure.description("Check POST CHARACTER with json which contain nothing. "
+                        "Expected status code 400 and error message")
+    def test_empty_data_with_name(self, api, fake):
+        character_data = {}
+        response = api.post_character(character_data)
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
+
     @allure.description("Test for 'POST /character' method with empty input field in json. "
                         "Check response structure, data types and response time."
                         "Expected status code 400. Error message will not be checked. "
@@ -81,7 +97,7 @@ class TestPostCharacter:
                         "New character will not be added to collection")
     @pytest.mark.parametrize("null_field_names", [
         ("name",),
-        ("other_aliases", ),
+        ("other_aliases",),
         ("name", "universe", "education"),
         ("weight", "height", "identity")])
     def test_null_field(self, api, fake, null_field_names):
@@ -105,7 +121,7 @@ class TestPostCharacter:
                         "New character will not be added to collection")
     @pytest.mark.parametrize("bad_field_names", [
         ("name",),
-        ("other_aliases", ),
+        ("other_aliases",),
         ("name", "universe"),
         ("education", "identity")
     ])
@@ -206,7 +222,7 @@ class TestPostCharacter:
         for field_name in field_names:
             pop_field(character_data, field_name)
         response = api.post_character(character_data)
-        check.base_complex_check(response, 400, schema= {"error": {"type": "string"}})
+        check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
 
     @allure.description("Test for 'POST /character' method for duplicate character"
                         "Check response structure, data types and response time."
