@@ -43,7 +43,7 @@
 - `framework/helpers/checker.py` - класс для реализации методов прверки данных
 - `framework/helpers/credentials.py` - класс для работы с данными авторизации
 - `framework/helpers/simple_response.py` - структура для модификации ответа на запросы
-- `framework/helpers/utils.py` - всопомгательные функции
+- `framework/helpers/utils.py` - вспомогательные функции
 
 ## Инструкция для запуска тестов
   1. (_**опционально**_) Установить консольное приложение `allure` (установить можно с помощью `scoop` в **Windows**,`brew` в **MacOS**, на **Linux** вероятно из исходников)
