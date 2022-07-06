@@ -29,9 +29,11 @@ class TestDeleteCharacterByName:
         collection = api.get_all_characters().content.get("result")
         duplicate_name, count = get_first_duplicate_name(collection)
         allure.dynamic.title(f"Delete request with duplicate name (one record): '{duplicate_name}' ({count} times)")
+
         response = api.delete_character_by_name(duplicate_name)
         check.base_complex_check(response, 200, schema={"result": {"type": "string"}})
         check.data_contain_str(response.content["result"], duplicate_name)
+
         duplicate_name_response = api.get_character_by_name(duplicate_name)
         check.base_complex_check(duplicate_name_response, 400, schema={"error": {"type": "string"}})
 

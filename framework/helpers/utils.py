@@ -16,10 +16,15 @@ def get_first_duplicate_name(collection):
     with allure.step("Get first duplicate name in collection"):
         names_list = [record.get('name') for record in collection]
         names_set = set(names_list)
+        result_name = names_list[0]
+        result_count = 1
         for name in names_set:
             count = names_list.count(name)
             if count > 1:
-                return name, count
+                result_name = name
+                result_count = count
+                break
+        return result_name, result_count
 
 
 def transform_to_float(obj):
