@@ -5,6 +5,13 @@ import allure
 """
 
 
+def get_duplicated_records(collection, duplicate_name):
+    with allure.step("Get duplicated records from collection"):
+        duplicated_records = [record if record["name"] == duplicate_name else None for record in collection]
+        duplicated_records = clean_list(duplicated_records, None)
+        return duplicated_records
+
+
 def get_first_duplicate_name(collection):
     with allure.step("Get first duplicate name in collection"):
         names_list = [record.get('name') for record in collection]
@@ -35,3 +42,12 @@ def change_field_name(dictionary: dict, field, new_name):
 def pop_field(dictionary: dict, field):
     with allure.step(f"Pop field '{field}'"):
         return dictionary.pop(field)
+
+
+def clean_list(list_obj: list, target_val):
+    with allure.step(f"Remove all '{target_val}' objects from list"):
+        result = []
+        for obj in list_obj:
+            if obj != target_val:
+                result.append(obj)
+        return result

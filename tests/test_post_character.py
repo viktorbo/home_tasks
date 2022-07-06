@@ -224,7 +224,7 @@ class TestPostCharacter:
         response = api.post_character(character_data)
         check.base_complex_check(response, 400, schema={"error": {"type": "string"}})
 
-    @allure.description("Test for 'POST /character' method for duplicate character"
+    @allure.description("Test for 'POST /character' method for duplicated character"
                         "Check response structure, data types and response time."
                         "Expected status code 400.  Error message will not be checked. "
                         "Duplicated character will not be added to collection")
@@ -252,7 +252,7 @@ class TestPostCharacter:
         limit = 500
         allure.dynamic.title(f"Check adding characters more than DB limit ({limit})")
         for i in range(limit + 1):
-            character_data = {"name": f"{i + 1}_TestName_{fake.random_number()}",
+            character_data = {"name": f"POST_{i + 1}_TestName_{fake.random_number()}",
                               "universe": "TestUniverse",
                               "education": "TestEducation",
                               "weight": 1,
