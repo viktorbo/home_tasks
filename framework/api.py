@@ -38,8 +38,8 @@ class API:
                                       else response.text)
 
     # GET
-    def get_all_characters(self) -> SimpleResponse:
-        return self.auth_request("GET", "characters")
+    def get_all_characters(self, **kwargs) -> SimpleResponse:
+        return self.auth_request("GET", "characters", **kwargs)
 
     def get_character_by_name(self, name) -> SimpleResponse:
         return self.auth_request("GET", "character", params={"name": name})
